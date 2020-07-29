@@ -68,7 +68,7 @@ if(length(args) > 0)
   PWstamp <- ifelse(subtractPWmean, "subtractpw", "nopw")
   
   pdf(paste0("~/NAM-Model-Validation/pdf/prediction/prediction_",name,
-             year,"_GIS_GHiG_NA_flatPWmean_",PWstamp, Ngen,".pdf"))
+             year,"_GIS_GHiG_NA_flatPWmean_NEW",PWstamp, Ngen,".pdf"))
   
   mask <- raster("~/NAM-Model-Validation/lsmask.nc")
   mask[mask==-1]  <- NA
@@ -81,25 +81,17 @@ if(length(args) > 0)
   PW_mean <- raster("~/NAM-Model-Validation/error_rasters_summary/PW_post_flat.grd")*mask.regrid
   
   # run GibbsSamplerHurrRegr first for B and as.square
-  B_pred <- as.square(apply(B[burn:iters,], 2, median))
+  # B_pred <- as.square(apply(B[burn:iters,], 2, median))
+  B_pred <- B_burn[sample(iters-burn, Ngen),]
   
-  Sigma_theta_pred <- as.square(apply(Sigma_theta[burn:iters,], 2, median))
+  # Sigma_theta_pred <- as.square(apply(Sigma_theta[burn:iters,], 2, median))
+  Sigma_theta_pred <- Sigma_burn[sample(iters-burn, Ngen),]
   
-  theta_pred <- rmvn(Ngen, B_pred %*% x_pred, Sigma_theta_pred)
-  
-  # (neg_rows <- which(theta_pred < 0))
-  # for (i in 1:length(neg_rows)) {
-  #   col2chg <- 1
-  #   count <- Ngen
-  #   # print(c(col2chg,count))
-  #   while(neg_rows[i] > count){
-  #     count <- count + Ngen
-  #     col2chg <- col2chg + 1
-  #     # print(c(count, col2chg))
-  #   }
-  #   theta_pred[neg_rows[i]] <- median(theta_pred[,col2chg])
-  # }
-  # (neg_rows <- which(theta_pred < 0))
+  # theta_pred <- rmvn(n = Ngen, mu = B_pred %*% x_pred, Sigma=Sigma_theta_pred)
+  theta_pred <- matrix(nrow = Ngen, ncol = P)
+  for (i in 1:Ngen) {
+    theta_pred[i,] <- MASS::mvrnorm(n=1, mu=(as.square(B_pred[i,]) %*% x_pred), Sigma=as.square(Sigma_theta_pred[i,]))
+  }
   
   NAM_r <- rasterFromXYZ(NAM_pred[,c(3,4,2)])
   ST4_r <- rasterFromXYZ(ST4_pred[,c(3,4,2)]) #row order messed up from logprecipvariogram write.csv
@@ -179,7 +171,7 @@ if(length(args) > 0)
   ests <- cbind(mean(off_base), mean(off_est), mean(off_est99), mean(off_est100))
   ests_PW<-cbind(mean(off_base), mean(off_est_PW), mean(off_est99_PW), mean(off_est100_PW))
   
-  write.csv(rbind(ests,ests_PW), paste0(file = "~/NAM-Model-Validation/csv/prediction/", pred_dir,"_flatPWmean.csv"))
+  write.csv(rbind(ests,ests_PW), paste0(file = "~/NAM-Model-Validation/csv/prediction/", pred_dir,"_flatPWmeanNEW.csv"))
   
   #2in = 50.8mm
   sim_prob <- matrix(NA, nrow = nrow(simvals), ncol = Ngen)

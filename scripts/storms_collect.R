@@ -2,7 +2,9 @@
 # code to collect all 47 results into a single data frame
 # This will be input into the Gibbs sampler
 
-path <- "/home/walsh124/NAM-Model-Validation/RData/RDatafixnug0/fix0_flatPWmean/"
+# Run once for estimation storms, then again for prediction storms
+
+path <- "/home/walsh124/NAM-Model-Validation/RData/RDatafixnug0/"
 data_files <- list.files(path, pattern = ".RData", full.names = T)
 
 all_storm_res <- matrix(NA, length(data_files), 9)
@@ -152,27 +154,31 @@ dim(locs[avail,])
 # # dev.off()
 
 # Compare MLEs before and after the change in PWmean map (all24 vs 12/24/12 and the Maine bug)
-# newer_res <- all_storm_res
-both <- merge(flat_storm_res, all_storm_res, by="row.names", all=T)
+if(!(exists("temp_res"))) temp_res <- all_storm_res
+if(!(exists("temp_hess"))) temp_hess <- hess_opt
+# both <- merge(temp_res, all_storm_res, by="row.names", all=T)
+all_storm_res <- rbind(temp_res, all_storm_res)[1:53,]
+hess_opt <- c(hess_opt, temp_hess)
 
-order(-1*(abs(both$MLEsigma2.x - both$MLEsigma2.y)))
-order(-1*(abs(both$MLEphi.x - both$MLEphi.y)))
-order(-1*(abs(both$MLEkappa.x - both$MLEkappa.y)))
+# order(-1*(abs(both$MLEsigma2.x - both$MLEsigma2.y)))
+# order(-1*(abs(both$MLEphi.x - both$MLEphi.y)))
+# order(-1*(abs(both$MLEkappa.x - both$MLEkappa.y)))
+# 
+# order(-1*(abs(both$MLEkappa.x - both$MLEkappa.y) + 
+#             abs(both$MLEphi.x - both$MLEphi.y) + 
+#             abs(both$MLEsigma2.x - both$MLEsigma2.y)))
+# rownames(all_storm_res)[order(-1*(abs(both$MLEkappa.x - both$MLEkappa.y) + 
+#                                     abs(both$MLEphi.x - both$MLEphi.y) + 
+#                                     abs(both$MLEsigma2.x - both$MLEsigma2.y)))]
 
-order(-1*(abs(both$MLEkappa.x - both$MLEkappa.y) + 
-            abs(both$MLEphi.x - both$MLEphi.y) + 
-            abs(both$MLEsigma2.x - both$MLEsigma2.y)))
-rownames(all_storm_res)[order(-1*(abs(both$MLEkappa.x - both$MLEkappa.y) + 
-                                    abs(both$MLEphi.x - both$MLEphi.y) + 
-                                    abs(both$MLEsigma2.x - both$MLEsigma2.y)))]
-
-library(plotly)
-plot_ly(data=both,x=~MLEkappa.x, y=~MLEkappa.y) %>% 
-  add_annotations(x = both$MLEkappa.x, y = both$MLEkappa.y, text = rownames(both), showarrow = FALSE)
-
-plot_ly(data=both,x=~MLEphi.x, y=~MLEphi.y) %>% 
-  add_annotations(x = both$MLEphi.x, y = both$MLEphi.y, text = rownames(both), showarrow = FALSE)
-
-plot_ly(data=both,x=~MLEsigma2.x, y=~MLEsigma2.y) %>% 
-  add_annotations(x = both$MLEsigma2.x, y = both$MLEsigma2.y, text = rownames(both), showarrow = FALSE)
+##Plotted these when both merged MLEs from noPWmean and MLEs w/ PWmean subtracted
+# library(plotly)
+# plot_ly(data=both,x=~MLEkappa.x, y=~MLEkappa.y) %>% 
+#   add_annotations(x = both$MLEkappa.x, y = both$MLEkappa.y, text = rownames(both), showarrow = FALSE)
+# 
+# plot_ly(data=both,x=~MLEphi.x, y=~MLEphi.y) %>% 
+#   add_annotations(x = both$MLEphi.x, y = both$MLEphi.y, text = rownames(both), showarrow = FALSE)
+# 
+# plot_ly(data=both,x=~MLEsigma2.x, y=~MLEsigma2.y) %>% 
+#   add_annotations(x = both$MLEsigma2.x, y = both$MLEsigma2.y, text = rownames(both), showarrow = FALSE)
 

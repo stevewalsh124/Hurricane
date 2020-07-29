@@ -2,7 +2,6 @@
 # for the spatial covariance parameters phi, kappa, sigma2
 # Based on the csvs from LogPrecipVariograms.R
 
-setwd("~")
 remove(list =ls())
 require(geoR)
 # install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
@@ -27,6 +26,7 @@ nowtime <- function(){gsub(gsub(gsub(Sys.time(),pattern = " ", replacement = "")
 
 include.elevation = F #include/exclude elevation 
 small_sample <- F
+pred <- T
 # I for INLA results
 sig2om_Ivec <- c()
 sig2ep_Ivec <- c()
@@ -36,7 +36,7 @@ sig2ep_Ivec_MED <- c()
 range_Ivec_MED <- c()
 name_Ivec <- c()
 
-storms_to_eval <- 3
+storms_to_eval <- 1
 fix.nug = T
 nug.val <- 0#.01
 
@@ -73,6 +73,9 @@ par_calcy <- foreach(co=1:cores, .combine= 'comb',
                                    
                        storm_file <- list.files("~/NAM-Model-Validation/csv/error_df/subtractPWmeanT_flat",
                                                 full.names = T)[storms_to_eval[co]] #"csv/INLAvsWLS/error"
+                       if(pred){storm_file <- list.files("~/NAM-Model-Validation/prediction/", 
+                                                         pattern = "subtractPWmeanflat.csv",
+                                                         recursive = T, full.names = T)[storms_to_eval[co]]}
                        name_start_INLA <- str_locate_all(pattern ='_', storm_file)[[1]][,1]
                        name_Ivec <- substr(storm_file,
                                            name_start_INLA[length(name_start_INLA)-1]+1,
@@ -473,6 +476,7 @@ if(exists("par_calcy")){save.image(file=paste0("~/NAM-Model-Validation/RData/RDa
                                           ifelse(fix.nug,"fixnug","estnug"),nug.prt, "/storms",
                                           storms_char,"_",nowtime(),"_NAmask_estsmooth0501",
                                           if(small_sample){"smallsamptest"},
+                                          if(pred){"pred"},
                                           ifelse(fix.nug,"fixnug","estnug"), nug.prt, ".RData"))}
 
 par_calcy_vec <- cbind(unlist(par_calcy[[1]]), unlist(par_calcy[[2]]), unlist(par_calcy[[3]]),
@@ -568,4 +572,5 @@ before; after
 write.csv(par_calcy_vec,paste0("~/NAM-Model-Validation/csv/MLEestimates_buffer_ngb_PWmean/MLEvsINLAstorms",
                                storms_char,"_est_smooth0501_",ifelse(fix.nug,"fixnug","estnug"), nug.prt,
                                if(small_sample){"smallsamptest"},
+                               if(pred){"pred"},
                                "_NAmask_", nowtime(),".csv"))

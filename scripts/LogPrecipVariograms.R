@@ -415,6 +415,14 @@ for(i in 1:length(storm.dirs)){
       write.csv(error_df, paste0("~/NAM-Model-Validation/csv/error_df/subtractPWmeanF/errordf_",
                                  storm_year,storm_name,"_",radius,"deg.csv"))
     }
+  } else {
+    if(subtractPWmean){
+      write.csv(error_df, paste0("~/NAM-Model-Validation/prediction/",
+                                 storm_yearname,"/",storm_yearname,"_errordf_subtractPWmeanflat.csv"))
+    } else {
+      write.csv(error_df, paste0("~/NAM-Model-Validation/prediction/",
+                                 storm_yearname,"/",storm_yearname,"_errordf.csv"))
+    }
   }
   
   error.max <- max(abs(error_df$value))
