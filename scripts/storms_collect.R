@@ -4,7 +4,8 @@
 
 # Run once for estimation storms, then again for prediction storms
 
-path <- "/home/walsh124/NAM-Model-Validation/RData/RDatafixnug0/"
+#flat first, then 6 pred for all 53
+path <- "/home/walsh124/NAM-Model-Validation/RData/RDatafixnug0/fix0_flatPWmean/" 
 data_files <- list.files(path, pattern = ".RData", full.names = T)
 
 all_storm_res <- matrix(NA, length(data_files), 9)
@@ -154,11 +155,14 @@ dim(locs[avail,])
 # # dev.off()
 
 # Compare MLEs before and after the change in PWmean map (all24 vs 12/24/12 and the Maine bug)
-if(!(exists("temp_res"))) temp_res <- all_storm_res
-if(!(exists("temp_hess"))) temp_hess <- hess_opt
+if(!(exists("temp_res"))){ 
+  temp_res <- all_storm_res; temp_hess <- hess_opt 
+} else {
+  all_storm_res <- rbind(temp_res, all_storm_res)[1:53,]
+  hess_opt <- c(temp_hess, hess_opt)[1:53]
+  }
 # both <- merge(temp_res, all_storm_res, by="row.names", all=T)
-all_storm_res <- rbind(temp_res, all_storm_res)[1:53,]
-hess_opt <- c(hess_opt, temp_hess)
+
 
 # order(-1*(abs(both$MLEsigma2.x - both$MLEsigma2.y)))
 # order(-1*(abs(both$MLEphi.x - both$MLEphi.y)))

@@ -4,11 +4,12 @@
 # run storms_collect.R first
 # pick data vs posterior pwmean; change pdf and save.image() names
 
-pdf("~/NAM-Model-Validation/pdf/Gibbs/GibbsSamplerHurrRegr_EMPBAYESIW_NA_GHG_flatPWmean.pdf")
+pdf("~/NAM-Model-Validation/pdf/Gibbs/GibbsSamplerHurrRegr_EMPBAYESIW_NA_GHG_flatPWmean_wpred.pdf")
 # remove(list=ls())
 # load("NAM-Model-Validation/RData/par_optim_allbut43.RData")
 # rm(list=setdiff(ls(), c("par_optim")))
 
+inc_pred  <- T #include the 6 prediction storms with the 47 estimation storms?
 # set.seed(489)
 
 library(MCMCpack)    #riwish (inverse wishart draws)
@@ -60,6 +61,15 @@ theta_bar <- apply(theta_hat, 2, mean)
 # read in location and intensity info
 loc_int <- read.csv("~/NAM-Model-Validation/csv/storm_levels_and_locs.csv", row.names = 1)[avail,]#[-43,]
 colnames(loc_int) <- c("int","loc")
+
+if(inc_pred){
+  loc_int <- read.csv("~/NAM-Model-Validation/csv/storm_levels_and_locs.csv", row.names = 1)
+  colnames(loc_int) <- c("int","loc")
+  pred_locs <- as.factor(c("FL","ATL","GULF","FL","GULF","ATL"))
+  # colnames(pred_locs) <- "loc"
+  loc_int <- data.frame(unlist(list(loc_int$loc, pred_locs)))
+  colnames(loc_int) <- "loc"
+}
 
 # nA <- table(loc_int$loc)[1]
 # nF <- table(loc_int$loc)[2]
